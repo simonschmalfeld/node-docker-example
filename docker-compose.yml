@@ -1,0 +1,47 @@
+# docker-compose.yml
+
+version: "3"
+services:
+  # client_dev:
+  #   build: ./client
+  #   command: sh -c "npm install && npm run dev"
+  #   ports:
+  #     - 8080:8080
+  #   working_dir: /home/app/client
+  #   volumes:
+  #     - ./client:/home/app/client
+  api_dev:
+    build: ./api
+    # command: sh -c "npm run migrate-db && npm install && npm run dev"
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - 3000:8000
+    working_dir: /home/app/api
+    volumes:
+      - ./api:/home/app/api
+    depends_on:
+      - db
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./db/data/postgres:/var/lib/postgresql/data
+      # When the PostgreSQL container is started it will run any scripts
+      # provided in the `docker-entrypoint-initdb.d` directory, this connects
+      # our seed file to that directory so that it gets run
+      - ./database-seed.sql:/docker-entrypoint-initdb.d/database-seed.sql
+    ports:
+      - 5432:5432
+  pgadmin-compose:
+        image: dpage/pgadmin4
+        environment:
+            PGADMIN_DEFAULT_EMAIL: "placeholder@example.com"
+            PGADMIN_DEFAULT_PASSWORD: "fakepassword123!"
+        ports:
+            - "16543:80"
+        depends_on:
+            - db
